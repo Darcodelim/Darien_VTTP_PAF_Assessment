@@ -1,1 +1,85 @@
 Write your Task 2 answers in this file
+
+Task 2.1:mongoimport -hlocalhost --port=27017 -dbedandbreakfast -clistings_and_reviews --type=json  listings.json
+
+Task 2.2:db.listings_and_reviews.aggregate(
+[
+    {
+    $match: { 
+        "address.country":{
+        $regex:"australia",$options:"i"
+            }      
+        }
+    },
+
+    {
+        $out:{db:"bedandbreakfast",coll:"listings"}
+       
+    }
+    
+
+]);
+
+Task 2.3:
+db.listings.aggregate([
+    { $unwind: "$reviews" },
+    {
+        $addFields: {
+            "listing_id": { $ifNull: ["$_id", "N/A"] },
+            "_id": { $ifNull: ["$reviews._id", "N/A"] },
+            "date": { $ifNull: ["$reviews.date", "N/A"] },
+            "reviewer_name": { $replaceAll :{
+                input:{$ifNull: ["$reviews.reviewer_name", "N/A"]},
+                find:",",
+                replacement:"" 
+                }
+            }
+
+        }
+    },
+    {
+        $project:{ _id: 1,
+            listing_id: 1,
+            date: 1,
+            reviewer_name: 1,
+            comments:{  $replaceAll: {
+                    input: { $ifNull: ["$reviews.comments", ""] },
+                    find: "\r" ,
+                    replacement: ""
+                } }
+        }
+    },
+    
+    {
+        $project: {
+            _id: 1,
+            listing_id: 1,
+            date: 1,
+            reviewer_name: 1,
+            comments:{  $replaceAll: {
+                    input: { $ifNull: ["$comments", ""] },
+                    find: "\n" ,
+                    replacement: ""
+                } }
+        }
+    }
+    
+    ,
+        {
+        $out:{db:"bedandbreakfast",coll:"reviews"}
+       
+    }
+]);
+
+
+Task 2.4: db.listings.updateMany({},{$unset:{"reviews":1}});
+
+Task 2.5:
+Note: have to change to the folder directory first that you wish to export to
+
+mongoexport -hlocalhost --port=27017 -dbedandbreakfast -creviews --type=csv --fields=date,listing_id,reviewer_name,comments --out=reviews.csv
+
+
+Task 2.6: java -jar csv2sql.jar reviews.csv reviews.sql 
+
+

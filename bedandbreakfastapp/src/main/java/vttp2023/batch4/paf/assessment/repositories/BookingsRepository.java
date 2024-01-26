@@ -15,7 +15,11 @@ public class BookingsRepository {
 	
 	// You may add additional dependency injections
 
-	public static final String SQL_SELECT_USER_BY_EMAIL = "select * from users where email like %";
+	public static final String SQL_SELECT_USER_BY_EMAIL = "select * from users where email like ?";
+
+	public static final String SQL_BOOKING = "insert into bookings(booking_id,listing_id,duration,email) values(?,?,?,?)";
+
+	public static final String SQL_UPDATE_USER= "insert into users(email,name) values(?,?)";
 
 	@Autowired
 	private JdbcTemplate template;
@@ -29,15 +33,22 @@ public class BookingsRepository {
 		return Optional.of(new User(rs.getString("email"), rs.getString("name")));
 	}
 
+
 	// TODO: Task 6
 	// IMPORTANT: DO NOT MODIFY THE SIGNATURE OF THIS METHOD.
 	// You may only add throw exceptions to this method
-	public void newUser(User user) {
+	public boolean newUser(User user) {
+		
+		int num = template.update(SQL_UPDATE_USER,user.email(),user.name());
+		return num>0;
 	}
 
 	// TODO: Task 6
 	// IMPORTANT: DO NOT MODIFY THE SIGNATURE OF THIS METHOD.
 	// You may only add throw exceptions to this method
-	public void newBookings(Bookings bookings) {
+	public boolean newBookings(Bookings bookings) {
+		int num = template.update(SQL_BOOKING,bookings.getBookingId(),bookings.getListingId(),bookings.getDuration(),bookings.getEmail());
+		return num>0;
+
 	}
 }
